@@ -1,0 +1,25 @@
+#BlueJ class context
+comment0.target=DecisionTreeTest
+comment1.params=
+comment1.target=void\ setUp()
+comment1.text=\n\ Sets\ up\ the\ test\ fixture.\n\n\ Called\ before\ every\ test\ case\ method.\n
+comment10.params=
+comment10.target=void\ tearDown()
+comment10.text=\n\ Tears\ down\ the\ test\ fixture.\n\n\ Called\ after\ every\ test\ case\ method.\n
+comment2.params=
+comment2.target=void\ shouldCreateSmallestDecisionTree()
+comment3.params=
+comment3.target=void\ shouldCreateOtherDecisionTree()
+comment4.params=
+comment4.target=void\ shoulDifferentiateQuestionsDecisions()
+comment5.params=
+comment5.target=void\ shouldNotHaveDuplicateNodes()
+comment6.params=
+comment6.target=void\ shouldNotHaveMoreThanTwoChildrens()
+comment7.params=
+comment7.target=void\ shouldNotBeCaseSensitive()
+comment8.params=
+comment8.target=void\ shouldConvertToString()
+comment9.params=
+comment9.target=void\ shouldValityEquality()
+numComments=11
