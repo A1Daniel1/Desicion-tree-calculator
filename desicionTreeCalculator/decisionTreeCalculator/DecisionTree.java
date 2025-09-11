@@ -1,6 +1,17 @@
 public class DecisionTree {
-    
-    
+
+    private class Node{
+        String name;
+        Node yes;
+        Node no;
+        
+        Node(String name){
+            this.name=name;
+        }
+    }
+
+    private Node root;
+
     public DecisionTree(String root){
     }
     
