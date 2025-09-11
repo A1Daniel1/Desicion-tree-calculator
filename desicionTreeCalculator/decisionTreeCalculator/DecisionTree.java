@@ -6,13 +6,16 @@ public class DecisionTree {
         Node no;
         
         Node(String name){
-            this.name=name;
+            this.name=name.toLowerCase();
         }
     }
 
     private Node root;
+    private int size;
 
     public DecisionTree(String root){
+        this.root=new Node(root);
+        size=1;
     }
     
     public boolean add(String parent, String yesChild, String noChild){
