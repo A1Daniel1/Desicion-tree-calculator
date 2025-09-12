@@ -48,13 +48,18 @@ public class DecisionTree {
 
     
     public int nodes(){
-        return 0;
+        return size;
     }
     
    
     public int height(){
-        return 0;
+        return height(root);
     }    
+
+    private int height(Node node) {
+    if (node == null) return 0;
+    return 1 + Math.max(height(node.yes), height(node.no));
+    }
     
     
     public boolean equals(DecisionTree dt){
