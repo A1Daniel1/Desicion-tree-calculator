@@ -6,7 +6,7 @@ public class DecisionTree {
         Node no;
         
         Node(String name){
-            this.name=name.toLowerCase();
+            this.name = name.toLowerCase();
         }
     }
 
@@ -14,39 +14,28 @@ public class DecisionTree {
     private int size;
 
     public DecisionTree(String root){
-        this.root=new Node(root);
-        size=1;
+        this.root = new Node(root);
+        size = 1;
     }
     
     public boolean add(String parent, String yesChild, String noChild){
         Node parentNode = find(root, parent.toLowerCase());
-
         if (parentNode == null) return false;
-    
         if (parentNode.yes != null || parentNode.no != null) return false;
-
         if (contains(yesChild) || contains(noChild)) return false;
 
-        // crear hijos
         parentNode.yes = new Node(yesChild);
         parentNode.no = new Node(noChild);
         size += 2;
-
         return true;
     }    
 
     private Node find(Node node, String value) {
-        if (node == null) {
-            return null;
-        }
+        if (node == null) return null;
+        if (node.name.equals(value)) return node;
 
-        if (node.name.equals(value)) {
-            return node;
-        }
-
-        Node left = find(node.yes, value);
-        if (left != null) return left;
-        
+        Node found = find(node.yes, value);
+        if (found != null) return found;
         return find(node.no, value);
     }
     
@@ -54,16 +43,15 @@ public class DecisionTree {
         if (nodeValue == null || root == null) return false;
         nodeValue = nodeValue.toLowerCase();
 
-        // caso especial: si borran la raíz
         if (root.name.equals(nodeValue)){
             root = null;
             size = 0;
             return true;
         }
-        return delete(root, nodeValue);
+        return deleteHelper(root, nodeValue);
     }
 
-    private boolean delete(Node parent, String value){
+    private boolean deleteHelper(Node parent, String value){
         if (parent == null) return false;
 
         if (parent.yes != null && parent.yes.name.equals(value)){
@@ -77,7 +65,7 @@ public class DecisionTree {
             return true;
         }
 
-        return delete(parent.yes, value) || delete(parent.no, value);
+        return deleteHelper(parent.yes, value) || deleteHelper(parent.no, value);
     }
 
     private int countNodes(Node node){
@@ -85,39 +73,49 @@ public class DecisionTree {
         return 1 + countNodes(node.yes) + countNodes(node.no);
     }
 
-    
-    public DecisionTree eval(String [][] values) {
-        if (root == null) return null;
+    public DecisionTree eval(String[][] values) {
+        if (root == null || values == null) return null;
 
         Node current = root;
-
         for (String[] qa : values) {
-            if (current == null) break; // protección
+            if (qa == null || qa.length < 2) continue;
 
             String question = qa[0].toLowerCase();
-            String answer   = qa[1].toLowerCase();
+            String answer = qa[1].toLowerCase();
 
             if (current.name.equals(question)) {
                 if (answer.equals("yes") || answer.equals("true")) {
                     if (current.yes != null) {
                         current = current.yes;
                     } else {
-                        break; // no hay rama yes
+                        break;
                     }
                 } else if (answer.equals("no") || answer.equals("false")) {
                     if (current.no != null) {
                         current = current.no;
                     } else {
-                        break; // no hay rama no
+                        break;
                     }
                 }
             }
         }
 
-        if (current == null) return null; 
-        return new DecisionTree(current.name);
+        if (current != null) {
+            DecisionTree result = new DecisionTree(current.name);
+            result.root = copyNode(current);
+            result.size = countNodes(result.root);
+            return result;
+        }
+        return null;
     }
 
+    private Node copyNode(Node node) {
+        if (node == null) return null;
+        Node newNode = new Node(node.name);
+        newNode.yes = copyNode(node.yes);
+        newNode.no = copyNode(node.no);
+        return newNode;
+    }
     
     public boolean contains(String node){
         return find(root, node.toLowerCase()) != null;
@@ -125,9 +123,7 @@ public class DecisionTree {
     
     public boolean isQuestion(String node){
         Node n = find(root, node.toLowerCase());
-        if (n == null) {
-            return false;
-        }
+        if (n == null) return false;
         return (n.yes != null || n.no != null);
     }
 
@@ -140,63 +136,57 @@ public class DecisionTree {
     public DecisionTree union(DecisionTree dt){
         if (dt == null || dt.root == null) return this;
         DecisionTree result = new DecisionTree(this.root.name);
-        result.root = unionNodes(this.root, dt.root);
+        result.root = mergeNodes(this.root, dt.root);
         return result;
     }
 
-    private Node unionNodes(Node a, Node b){
-        if (a == null) return copy(b);
-        if (b == null) return copy(a);
+    private Node mergeNodes(Node a, Node b){
+        if (a == null) return copyNode(b);
+        if (b == null) return copyNode(a);
 
-        Node merged = new Node(a.name.equals(b.name) ? a.name : a.name + "|" + b.name);
-        merged.yes = unionNodes(a.yes, b.yes);
-        merged.no  = unionNodes(a.no, b.no);
+        String newName = a.name.equals(b.name) ? a.name : a.name + "|" + b.name;
+        Node merged = new Node(newName);
+        merged.yes = mergeNodes(a.yes, b.yes);
+        merged.no = mergeNodes(a.no, b.no);
         return merged;
     }
-    
-    private Node copy(Node n){
-    if (n == null) return null;
-    Node newNode = new Node(n.name);
-    newNode.yes = copy(n.yes);
-    newNode.no  = copy(n.no);
-    return newNode;
-    }
-
     
     public int nodes(){
         return size;
     }
     
-   
     public int height(){
-        return height(root);
+        return getHeight(root);
     }    
 
-    private int height(Node node) {
-    if (node == null) return 0;
-    return 1 + Math.max(height(node.yes), height(node.no));
+    private int getHeight(Node node) {
+        if (node == null) return 0;
+        return 1 + Math.max(getHeight(node.yes), getHeight(node.no));
     }
     
-    
-    public boolean equals(Object g){
-        return equals((DecisionTree)g);
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        DecisionTree other = (DecisionTree) obj;
+        return nodesEqual(this.root, other.root);
     }
 
-    //Trees are inside parentesis. The names are in lowercase. The childs must always be in yes no order.
-    //For example, (a yes (b yes (c) no (d)) no (e)) 
+    private boolean nodesEqual(Node node1, Node node2) {
+        if (node1 == null && node2 == null) return true;
+        if (node1 == null || node2 == null) return false;
+        if (!node1.name.equals(node2.name)) return false;
+        return nodesEqual(node1.yes, node2.yes) && nodesEqual(node1.no, node2.no);
+    }
+
     public String toString() {
-        return toString(root);
+        return nodeToString(root);
     }
 
-    private String toString(Node node) {
+    private String nodeToString(Node node) {
         if (node == null) return "";
-
         if (node.yes == null && node.no == null) {
             return "(" + node.name + ")";
         }
-
-        return "(" + node.name 
-            + " yes " + toString(node.yes) 
-            + " no " + toString(node.no) + ")";
+        return "(" + node.name + " yes " + nodeToString(node.yes) + " no " + nodeToString(node.no) + ")";
     }
 }

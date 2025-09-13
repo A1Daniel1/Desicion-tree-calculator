@@ -1,122 +1,196 @@
 import java.util.HashMap;
 
-/** DecisionTreeCalculator.java
- * 
- * @author ESCUELA 2025-02
- */
-    
 public class DecisionTreeCalculator{
     
     private HashMap<String,DecisionTree> variables;
+    private boolean lastOperationOk;
     
     public DecisionTreeCalculator(){
         variables = new HashMap<>();
+        lastOperationOk = true;
     }
 
-    //Create a new variable
     public void create(String name){
-        if (name != null && !variables.containsKey(name)) {
-        variables.put(name, null);
-    }
+        if (name != null) {
+            variables.put(name, null);
+            lastOperationOk = true;
+        } else {
+            lastOperationOk = false;
+        }
     }
      
-    //Create a decision tree and assign to an existing variable
-    //a := decisionTree
     public void assign(String a, String root){
-        if (a != null && variables.containsKey(a)) {
+        if (a != null && root != null && variables.containsKey(a)) {
             variables.put(a, new DecisionTree(root));
+            lastOperationOk = true;
+        } else {
+            lastOperationOk = false;
         }
     }    
     
-    
-    //Assigns the value of a unary operation to a variable
-    // a = b op parameters
-    //The operator characters are: '+' adding sons, '-' removing a node, '?' eval a decision tree
-    //The parameters for '+' are [[parent, yesChild, noChild]]
-    //The parameters for '-' are [[nodeName]]
-    //The parameters for '?' are [[node1, val1], [node2, val2], ....]
-
-    public void assignUnary(String a, String b, char op, String [][] parameters){
-    DecisionTree base = variables.get(b);
-    if (base == null) return;
-
-    DecisionTree result = null;
-
-    switch(op){
-        case '+':
-            if (parameters != null && parameters.length > 0 && parameters[0].length == 3){
-                String parent = parameters[0][0];
-                String yes = parameters[0][1];
-                String no  = parameters[0][2];
-                base.add(parent, yes, no);
-            }
-            result = base;
-            break;
-
-        case '-':
-            if (parameters != null && parameters.length > 0){
-                String nodeToDelete = parameters[0][0];
-                base.delete(nodeToDelete);
-            }
-            result = base;
-            break;
-
-        case '?':
-            result = base.eval(parameters);
-            break;
-    }
-
-    if (result != null){
-        variables.put(a, result);
-    }
-}
-
-    
-    //Assigns the value of a binary operation to a variable
-    // a = b op c
-    //The operator characters are:  'u' union, 'i' intersection, 'd' difference
-    public void assignBinary(String a, String b, char op, String c){
-    DecisionTree left  = variables.get(b);
-    DecisionTree right = variables.get(c);
-    if (left == null || right == null) return;
-
-    DecisionTree result = null;
-
-    switch(op){
-        case 'u': // union
-            result = left.union(right);
-            break;
-        case 'i': // intersection
-            // (este lo defines después en DecisionTree)
-            break;
-        case 'd': // difference
-            // (este lo defines después en DecisionTree)
-            break;
-    }
-
-    if (result != null){
-        variables.put(a, result);
-    }
-}
-
-    
-    //Returns the decisionTree in alphabetical order.
-    public String toString(String decisionTree){
-        DecisionTree dt = variables.get(decisionTree);
-        if (dt != null) {
-            return dt.toString();
+    public void assignUnary(String a, String b, char op, String[][] parameters){
+        DecisionTree base = variables.get(b);
+        if (base == null || a == null) {
+            lastOperationOk = false;
+            return;
         }
+
+        DecisionTree result = null;
+
+        switch(op){
+            case '+':
+                if (parameters != null && parameters.length > 0 && parameters[0].length == 3){
+                    String parent = parameters[0][0];
+                    String yes = parameters[0][1];
+                    String no = parameters[0][2];
+                    boolean success = base.add(parent, yes, no);
+                    if (success) {
+                        result = base;
+                        lastOperationOk = true;
+                    } else {
+                        lastOperationOk = false;
+                    }
+                } else {
+                    lastOperationOk = false;
+                }
+                break;
+
+            case '-':
+                if (parameters != null && parameters.length > 0 && parameters[0].length >= 1){
+                    String nodeToDelete = parameters[0][0];
+                    boolean success = base.delete(nodeToDelete);
+                    if (success) {
+                        result = base;
+                        lastOperationOk = true;
+                    } else {
+                        lastOperationOk = false;
+                    }
+                } else {
+                    lastOperationOk = false;
+                }
+                break;
+
+            case '?':
+                result = base.eval(parameters);
+                lastOperationOk = (result != null);
+                break;
+                
+            default:
+                lastOperationOk = false;
+        }
+
+        if (result != null && lastOperationOk){
+            variables.put(a, result);
+        }
+    }
+
+    public void assignBinary(String a, String b, char op, String c){
+        DecisionTree left = variables.get(b);
+        DecisionTree right = variables.get(c);
+        
+        if (left == null || right == null || a == null) {
+            lastOperationOk = false;
+            return;
+        }
+
+        DecisionTree result = null;
+
+        switch(op){
+            case 'u':
+                result = left.union(right);
+                lastOperationOk = true;
+                break;
+                
+            case 'i':
+                result = intersection(left, right);
+                lastOperationOk = (result != null);
+                break;
+                
+            case 'd':
+                result = difference(left, right);
+                lastOperationOk = (result != null);
+                break;
+                
+            default:
+                lastOperationOk = false;
+        }
+
+        if (result != null && lastOperationOk){
+            variables.put(a, result);
+        }
+    }
+    
+    private DecisionTree intersection(DecisionTree a, DecisionTree b){
+        if (a == null || b == null) return null;
+        
+        // Intersección simple: solo si ambos árboles tienen el mismo nodo raíz
+        String aStr = a.toString();
+        String bStr = b.toString();
+        
+        if (aStr.equals(bStr)) {
+            return new DecisionTree(a.toString().replaceAll("[()]", "").split(" ")[0]);
+        }
+        
+        // Si las raíces son iguales, crear árbol con esa raíz
+        String aRoot = extractRoot(aStr);
+        String bRoot = extractRoot(bStr);
+        
+        if (aRoot != null && aRoot.equals(bRoot)) {
+            return new DecisionTree(aRoot);
+        }
+        
         return null;
     }
     
-    
-    //If the last operation was successfully completed
-    public boolean ok(){
-    return variables != null && !variables.isEmpty();
+    private DecisionTree difference(DecisionTree a, DecisionTree b){
+        if (a == null) return null;
+        if (b == null) return a;
+        
+        String aStr = a.toString();
+        String bStr = b.toString();
+        
+        // Si son iguales, la diferencia es vacía
+        if (aStr.equals(bStr)) return null;
+        
+        // Si son diferentes, devolver el primer árbol
+        String aRoot = extractRoot(aStr);
+        if (aRoot != null) {
+            return new DecisionTree(aRoot);
+        }
+        
+        return a;
     }
-
-}
     
-
-
-
+    private String extractRoot(String treeStr){
+        if (treeStr == null || !treeStr.startsWith("(")) return null;
+        
+        int firstSpace = treeStr.indexOf(" ");
+        int firstClose = treeStr.indexOf(")");
+        
+        if (firstSpace == -1) {
+            // Solo raíz: (root)
+            return treeStr.substring(1, firstClose);
+        } else {
+            // Árbol complejo: (root yes ...)
+            return treeStr.substring(1, firstSpace);
+        }
+    }
+    
+    /**
+     * Returns string representation of a decision tree variable
+     * @param decisionTree variable name
+     * @return tree string or null if variable doesn't exist
+     */
+    public String toString(String decisionTree){
+        DecisionTree dt = variables.get(decisionTree);
+        return (dt != null) ? dt.toString() : null;
+    }
+    
+    /**
+     * Checks if the last operation was successful
+     * @return true if last operation succeeded, false otherwise
+     */
+    public boolean ok(){
+        return lastOperationOk;
+    }
+}
