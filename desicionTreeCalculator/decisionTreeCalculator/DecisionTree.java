@@ -50,9 +50,41 @@ public class DecisionTree {
         return find(node.no, value);
     }
     
-    public boolean delete(String node){
-        return true;
+    public boolean delete(String nodeValue){
+        if (nodeValue == null || root == null) return false;
+        nodeValue = nodeValue.toLowerCase();
+
+        // caso especial: si borran la raíz
+        if (root.name.equals(nodeValue)){
+            root = null;
+            size = 0;
+            return true;
+        }
+        return delete(root, nodeValue);
     }
+
+    private boolean delete(Node parent, String value){
+        if (parent == null) return false;
+
+        if (parent.yes != null && parent.yes.name.equals(value)){
+            size -= countNodes(parent.yes);
+            parent.yes = null;
+            return true;
+        }
+        if (parent.no != null && parent.no.name.equals(value)){
+            size -= countNodes(parent.no);
+            parent.no = null;
+            return true;
+        }
+
+        return delete(parent.yes, value) || delete(parent.no, value);
+    }
+
+    private int countNodes(Node node){
+        if (node == null) return 0;
+        return 1 + countNodes(node.yes) + countNodes(node.no);
+    }
+
     
     public DecisionTree eval(String [][] values) {
         if (root == null) return null;
@@ -105,9 +137,31 @@ public class DecisionTree {
         return (n.yes == null && n.no == null);
     }
     
-    public DecisionTree union (DecisionTree dt){
-        return null;
+    public DecisionTree union(DecisionTree dt){
+        if (dt == null || dt.root == null) return this;
+        DecisionTree result = new DecisionTree(this.root.name);
+        result.root = unionNodes(this.root, dt.root);
+        return result;
     }
+
+    private Node unionNodes(Node a, Node b){
+        if (a == null) return copy(b);
+        if (b == null) return copy(a);
+
+        Node merged = new Node(a.name.equals(b.name) ? a.name : a.name + "|" + b.name);
+        merged.yes = unionNodes(a.yes, b.yes);
+        merged.no  = unionNodes(a.no, b.no);
+        return merged;
+    }
+    
+    private Node copy(Node n){
+    if (n == null) return null;
+    Node newNode = new Node(n.name);
+    newNode.yes = copy(n.yes);
+    newNode.no  = copy(n.no);
+    return newNode;
+    }
+
     
     public int nodes(){
         return size;

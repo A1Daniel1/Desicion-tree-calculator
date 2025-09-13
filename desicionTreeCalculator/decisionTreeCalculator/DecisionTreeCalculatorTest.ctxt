@@ -1,0 +1,26 @@
+#BlueJ class context
+comment0.target=DecisionTreeCalculatorTest
+comment1.params=
+comment1.target=void\ setUp()
+comment10.params=
+comment10.target=void\ shouldDifferenceTwoTrees()
+comment2.params=
+comment2.target=void\ shouldCreateAndAssignTree()
+comment2.text=----------------\ CICLO\ 1\:\ BASICS\ ----------------
+comment3.params=
+comment3.target=void\ shouldNotCrashOnUnknownVariable()
+comment4.params=
+comment4.target=void\ shouldReplaceTreeWhenReassigned()
+comment5.params=
+comment5.target=void\ shouldAddChildrenWithUnaryPlus()
+comment5.text=----------------\ CICLO\ 2\:\ UNARY\ OPS\ ----------------
+comment6.params=
+comment6.target=void\ shouldEvalTreeWithUnaryQuestion()
+comment7.params=
+comment7.target=void\ shouldDeleteNodeWithUnaryMinus()
+comment8.params=
+comment8.target=void\ shouldUnionTwoTrees()
+comment8.text=----------------\ CICLO\ 3\:\ BINARY\ OPS\ ----------------
+comment9.params=
+comment9.target=void\ shouldIntersectTwoTrees()
+numComments=11
