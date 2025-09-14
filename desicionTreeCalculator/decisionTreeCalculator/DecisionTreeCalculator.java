@@ -84,6 +84,7 @@ public class DecisionTreeCalculator{
         }
     }
 
+
     public void assignBinary(String a, String b, char op, String c){
         DecisionTree left = variables.get(b);
         DecisionTree right = variables.get(c);
@@ -123,7 +124,6 @@ public class DecisionTreeCalculator{
     private DecisionTree intersection(DecisionTree a, DecisionTree b){
         if (a == null || b == null) return null;
         
-        // Intersección simple: solo si ambos árboles tienen el mismo nodo raíz
         String aStr = a.toString();
         String bStr = b.toString();
         
@@ -131,7 +131,6 @@ public class DecisionTreeCalculator{
             return new DecisionTree(a.toString().replaceAll("[()]", "").split(" ")[0]);
         }
         
-        // Si las raíces son iguales, crear árbol con esa raíz
         String aRoot = extractRoot(aStr);
         String bRoot = extractRoot(bStr);
         
@@ -149,10 +148,10 @@ public class DecisionTreeCalculator{
         String aStr = a.toString();
         String bStr = b.toString();
         
-        // Si son iguales, la diferencia es vacía
+        
         if (aStr.equals(bStr)) return null;
         
-        // Si son diferentes, devolver el primer árbol
+        
         String aRoot = extractRoot(aStr);
         if (aRoot != null) {
             return new DecisionTree(aRoot);
